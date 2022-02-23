@@ -27,6 +27,31 @@ app.get('/talker/:id', (req, res) => {
   });
 });
 
+function verifiedEmail(req, res, next) {
+  const { email } = req.body;
+  if (!email) { return res.status(400).json({ message: 'O campo "email" é obrigatório' }); }
+  const validEmail = email.match(/\S+@\S+\.\S+/);
+  if (!validEmail) { 
+    return res.status(400).json({ message: 'O "email" deve ter o formato "email@email.com"' });
+   }
+  next();
+}
+
+function verifiedPassword(req, res, next) {
+  const { password } = req.body;
+  if (!password) { return res.status(400).json({ message: 'O campo "password" é obrigatório' }); }
+  if (password.length < 6) {
+     return res.status(400).json({ message: 'O "password" deve ter pelo menos 6 caracteres' }); 
+    }
+  next();
+}
+
+app.post('/login', verifiedEmail, verifiedPassword, (_req, res) => {
+  let token = Array.from({ length: 16 });
+  token = token.map((_e) => String.fromCharCode(64 + Math.random() * 23));
+  res.status(200).json({ token: token.join('') });
+});
+
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
