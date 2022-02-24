@@ -156,6 +156,16 @@ verifiedToken, verifiedName, verifiedAge, verifiedTalk, Rate, async (req, res) =
   res.status(200).json(updatedObj);
 });
 
+app.delete('/talker/:id', verifiedToken, async (req, res) => {
+  const { id } = req.params;
+  const file = await fs.readFile(talkerJson);
+  const JsonParse = JSON.parse(file);
+  const index = JsonParse.findIndex((element) => element.id === parseFloat(id));
+  JsonParse.splice(index, 1);
+  fs.writeFile(talkerJson, JSON.stringify(JsonParse));
+  res.status(204).end();
+});
+
 // não remova esse endpoint, e para o avaliador funcionar
 app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
