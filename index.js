@@ -1,3 +1,4 @@
+const talkerJson = 'talker.json';
 const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs').promises;
@@ -27,7 +28,7 @@ app.get('/talker', (_req, res) => {
 
 app.get('/talker/:id', (req, res) => {
   const { id } = req.params;
-  fs.readFile('talker.json').then((data) => {
+  fs.readFile(talkerJson).then((data) => {
     const talker = JSON.parse(data);
     const FindId = talker.find((element) => element.id === parseFloat(id));
     if (!FindId) { return res.status(404).json({ message: 'Pessoa palestrante não encontrada' }); }
@@ -131,8 +132,28 @@ verifiedToken, verifiedName, verifiedAge, verifiedTalk, Rate, async (req, res) =
   };
   
   JsonParse.push(obj);
-  fs.writeFile('talker.json', JSON.stringify(JsonParse));
+  fs.writeFile(talkerJson, JSON.stringify(JsonParse));
   res.status(201).json(obj);
+});
+
+app.put('/talker/:id', 
+verifiedToken, verifiedName, verifiedAge, verifiedTalk, Rate, async (req, res) => {
+  const { id } = req.params;
+  const { name, age, talk } = req.body;
+  const file = await fs.readFile(talkerJson);
+  const JsonParse = JSON.parse(file);
+  const updatedObj = {
+    name,
+    age,
+    id: (parseFloat(id)),
+    talk,
+  };
+  const index = JsonParse.findIndex((element) => element.id === parseFloat(id));
+  
+  JsonParse[index] = updatedObj;
+
+  fs.writeFile('talker.json', JSON.stringify(JsonParse));
+  res.status(200).json(updatedObj);
 });
 
 // não remova esse endpoint, e para o avaliador funcionar
