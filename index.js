@@ -16,15 +16,32 @@ function erroHandle(err, _req, res, _next) {
 
 const HTTP_OK_STATUS = 200;
 const PORT = '3000';
-
+function verifiedToken(req, res, next) {
+  const token = req.headers.authorization;
+  if (!token) return res.status(401).json({ message: 'Token não encontrado' });
+  if (token.length < 16) {
+    return res.status(401).json({ message: 'Token inválido' });
+  }
+  next();
+}
 // no requisito 1, utilizei o repositorio do ANTONIO CAMPOS como base para o meu app.get('/talker')
 // https://github.com/tryber/sd-015-b-project-talker-manager/pull/115/commits/a02dbab4f11f432056647186534645948e5fc87e
+
 app.get('/talker', (_req, res) => {
   fs.readFile('talker.json').then((data) => {
     if (data.length > 0) { return res.status(200).json(JSON.parse(data)); }
     return res.status(200).json([]);
   });
 });
+
+app.get('/talker/search', verifiedToken, async (req, res) => {
+  const { q } = req.query;
+  const file = await fs.readFile(talkerJson);
+  const JsonParse = JSON.parse(file);
+  const filtered = JsonParse.filter((element) => element.name.includes(q));
+  console.log(filtered);
+  res.status(200).json(filtered);
+}); 
 
 app.get('/talker/:id', (req, res) => {
   const { id } = req.params;
@@ -62,14 +79,6 @@ app.post('/login', verifiedEmail, verifiedPassword, (_req, res) => {
 });
 
 app.use(erroHandle);
-function verifiedToken(req, res, next) {
-  const token = req.headers.authorization;
-  if (!token) return res.status(401).json({ message: 'Token não encontrado' });
-  if (token.length < 16) {
-    return res.status(401).json({ message: 'Token inválido' });
-  }
-  next();
-}
 
 function verifiedName(req, res, next) {
   const { name } = req.body;
@@ -156,7 +165,7 @@ verifiedToken, verifiedName, verifiedAge, verifiedTalk, Rate, async (req, res) =
   res.status(200).json(updatedObj);
 });
 
-app.delete('/talker/:id', verifiedToken, async (req, res) => {
+ app.delete('/talker/:id', verifiedToken, async (req, res) => {
   const { id } = req.params;
   const file = await fs.readFile(talkerJson);
   const JsonParse = JSON.parse(file);
