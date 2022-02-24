@@ -62,10 +62,10 @@ app.post('/login', verifiedEmail, verifiedPassword, (_req, res) => {
 
 app.use(erroHandle);
 function verifiedToken(req, res, next) {
-  const { token } = req.headers.authorization;
-  if (!token) { return res.status(401).json({ message: 'Token inválido' }); }
+  const token = req.headers.authorization;
+  if (!token) return res.status(401).json({ message: 'Token não encontrado' });
   if (token.length < 16) {
-    return res.status(401).json({ message: 'Token não encontrado ' });
+    return res.status(401).json({ message: 'Token inválido' });
   }
   next();
 }
@@ -89,12 +89,16 @@ function verifiedAge(req, res, next) {
 }
 
 function verifiedTalk(req, res, next) {
-  const { watchedAt, rate } = req.body.talk;
   const { talk } = req.body;
-  if (!watchedAt || !rate || !talk) { 
+  if (!talk) { 
     return res.status(400).json({
-       message: 'O campo "talk" é obrigatório e "watchedAt" e "rate" não podem ser vazios' }); 
-  }
+      message: 'O campo "talk" é obrigatório e "watchedAt" e "rate" não podem ser vazios' }); 
+    }
+    const { watchedAt, rate } = talk;
+  if (!watchedAt || rate === undefined) { 
+    return res.status(400).json({
+      message: 'O campo "talk" é obrigatório e "watchedAt" e "rate" não podem ser vazios' }); 
+    }
    const validData = watchedAt.match(/^\d{2}\/\d{2}\/\d{4}$/);
    if (!validData) { 
     return res.status(400).json({ message: 'O campo "watchedAt" deve ter o formato "dd/mm/aaaa"' });
@@ -113,16 +117,21 @@ function Rate(req, res, next) {
 // no requisito 4, utilizei o repositorio do Andre Luiz como base para o meu app.post('/talker')
 // https://github.com/tryber/sd-015-b-project-talker-manager/pull/102/commits/8aecd3e6e26d0a93f5d13a326607818125bfa88a
 
-app.post('/talker', verifiedToken, verifiedName, verifiedAge, verifiedTalk, Rate, (req, res) => {
+app.post('/talker', 
+verifiedToken, verifiedName, verifiedAge, verifiedTalk, Rate, async (req, res) => {
   const { name, age, talk } = req.body;
-  const file = fs.readFile('talker.json').then((data) => JSON.parse(data));
+  const file = await fs.readFile('talker.json');
+  const JsonParse = JSON.parse(file);
+  const lastId = JsonParse.sort((a, b) => b.id - a.id)[0].id;
   const obj = {
     name,
     age,
-    id: (file.length + 1),
+    id: (lastId + 1),
     talk,
   };
-  fs.writeFile('talker.json', JSON.stringify(obj));
+  
+  JsonParse.push(obj);
+  fs.writeFile('talker.json', JSON.stringify(JsonParse));
   res.status(201).json(obj);
 });
 
