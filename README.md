@@ -1,7 +1,8 @@
 # Project Talker Manager
 
-Nesse projeto eu aprendi a construção de APIs REST, a criar uma API de casdastro e pesquisa, colocando os meus conhecimentos de Node.js com Express para realiza os desafios propostos da Trybe
+Neste projeto, pude aprender a construir APIs REST utilizando o Node.js com Express. Foi fundamental a compreensão do protocolo HTTP e da estrutura de rotas do Express para desenvolver uma API de cadastro e pesquisa
 
+# Os desafios eram 
 
 ### 1 - Crie o endpoint GET `/talker`
 
